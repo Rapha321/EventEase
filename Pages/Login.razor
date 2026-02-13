@@ -1,0 +1,21 @@
+@page "/login"
+@inject Services.SessionService SessionService
+@inject NavigationManager Nav
+
+<h3>Login</h3>
+
+<input class="form-control mb-2" placeholder="Email" @bind="email" />
+<input class="form-control mb-2" placeholder="Name" @bind="name" />
+
+<button class="btn btn-primary" @onclick="HandleLogin">Login</button>
+
+@code {
+    private string email = "";
+    private string name = "";
+
+    void HandleLogin()
+    {
+        SessionService.Login(email, name);
+        Nav.NavigateTo("/events");
+    }
+}

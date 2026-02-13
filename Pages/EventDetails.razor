@@ -1,0 +1,71 @@
+@page "/events/{id:int}"
+@inject Services.EventService EventService
+@inject Services.RegistrationService RegistrationService
+@inject Services.AttendanceService AttendanceService
+@inject Services.SessionService SessionService
+
+@using EventEase.Models
+
+@if (eventItem is null)
+{
+    <p>Event not found.</p>
+}
+else
+{
+    <h2>@eventItem.Name</h2>
+    <p><strong>Date:</strong> @eventItem.Date.ToString("MMMM dd, yyyy")</p>
+    <p><strong>Location:</strong> @eventItem.Location</p>
+    <p>@eventItem.Description</p>
+
+    @if (isRegistered)
+    {
+        <button class="btn btn-danger" @onclick="Unregister">Unregister</button>
+    }
+    else
+    {
+        <a class="btn btn-primary" href="/events/@eventItem.Id/register">Register</a>
+    }
+}
+
+@if (SessionService.IsLoggedIn)
+{
+    <button class="btn btn-success" @onclick="MarkAttended">
+        Mark as Attended
+    </button>
+}
+else
+{
+    <p>Please log in to mark attendance.</p>
+}
+
+
+@code {
+    [Parameter] public int id { get; set; }
+    private Event? eventItem;
+    private bool isRegistered;
+
+    protected override void OnInitialized()
+    {
+        eventItem = EventService.GetEventById(id);
+
+        if (eventItem is not null && RegistrationService.LastRegisteredEmail is not null)
+        {
+            isRegistered = RegistrationService.IsRegistered(id, RegistrationService.LastRegisteredEmail);
+        }
+    }
+
+    void Unregister()
+    {
+        if (RegistrationService.LastRegisteredEmail is not null)
+        {
+            RegistrationService.Unregister(id, RegistrationService.LastRegisteredEmail);
+            isRegistered = false;
+        }
+    }
+
+    void MarkAttended()
+    {
+        AttendanceService.MarkAttendance(eventItem.Id, SessionService.UserEmail!);
+    }
+}
+

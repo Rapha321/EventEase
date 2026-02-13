@@ -1,0 +1,70 @@
+@page "/events/{eventId:int}/register"
+@inject Services.EventService EventService
+@inject Services.RegistrationService RegistrationService
+@using EventEase.Models
+@inject Services.SessionService SessionService
+@inject IJSRuntime JS
+
+
+<h2>Register for @eventItem?.Name</h2>
+
+@if (eventItem is null)
+{
+    <p>Event not found.</p>
+}
+else
+{
+    <EditForm Model="registration" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div>
+            <label>Name:</label>
+            <InputText @bind-Value="registration.Name" class="form-control" />
+        </div>
+
+        <div>
+            <label>Email:</label>
+            <InputText @bind-Value="registration.Email" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Submit Registration</button>
+    </EditForm>
+
+    @if (submitted)
+    {
+        <p class="text-success mt-3">Registration successful!</p>
+    }
+}
+
+@code {
+    [Parameter] public int eventId { get; set; }
+
+    private Event? eventItem;
+    private Registration registration = new Registration();
+    private bool submitted = false;
+
+    protected override void OnInitialized()
+    {
+        eventItem = EventService.GetEventById(eventId);
+        registration.EventId = eventId;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var email = await JS.InvokeAsync<string>("localStorage.getItem", "userEmail");
+        var name = await JS.InvokeAsync<string>("localStorage.getItem", "userName");
+
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            SessionService.SetUser(email, name);
+        }
+    }
+
+    void HandleSubmit()
+    {
+        RegistrationService.Register(registration);
+        SessionService.Login(registration.Email, registration.Name);
+        submitted = true;
+    }
+}

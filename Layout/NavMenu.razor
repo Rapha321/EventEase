@@ -1,0 +1,62 @@
+﻿@inject Services.SessionService SessionService
+@inject NavigationManager Nav
+
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">EventEase</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/events">
+                Events
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="/my-registrations">
+                My Registrations
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@if (SessionService.IsLoggedIn)
+{
+    <span>Hello, @SessionService.UserName</span>
+    <button class="btn btn-link" @onclick="Logout">Logout</button>
+}
+else
+{
+    <a href="/login">Login</a>
+}
+
+@code {
+    void Logout()
+    {
+        SessionService.Logout();
+        Nav.NavigateTo("/");
+    }
+}
+
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

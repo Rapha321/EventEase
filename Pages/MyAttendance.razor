@@ -1,0 +1,26 @@
+@page "/attendance"
+@inject Services.AttendanceService AttendanceService
+@inject Services.SessionService SessionService
+@inject Services.EventService EventService
+
+<h3>My Attendance</h3>
+
+@if (!SessionService.IsLoggedIn)
+{
+    <p>Please log in to view your attendance.</p>
+}
+else
+{
+    var attended = AttendanceService.GetAttendanceForUser(SessionService.UserEmail!);
+
+    @foreach (var a in attended)
+    {
+        var ev = EventService.GetEventById(a.EventId);
+
+        <div class="card p-3 mb-2">
+            <h5>@ev.Name</h5>
+            <p>@ev.Location</p>
+            <p>Attended on: @a.Timestamp</p>
+        </div>
+    }
+}

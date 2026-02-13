@@ -1,0 +1,84 @@
+@page "/my-registrations"
+@inject Services.RegistrationService RegistrationService
+@inject Services.EventService EventService
+@using EventEase.Models
+
+@inject Services.SessionService SessionService
+
+<h2>My Registrations</h2>
+
+@if (!SessionService.IsLoggedIn)
+{
+    <p>Please log in to view your registrations.</p>
+}
+else
+{
+    var registrations = RegistrationService
+        .GetAllRegistrations()
+        .Where(r => r.Email == SessionService.UserEmail);
+}
+
+
+@if (userEmail is null)
+{
+    <p>You have not registered for any events yet.</p>
+}
+else if (!registrations.Any())
+{
+    <p>You are not registered for any events.</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var reg in registrations)
+        {
+            var ev = EventService.GetEventById(reg.EventId);
+
+            if (ev is not null)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>@ev.Name</strong><br />
+                        <span>@ev.Date.ToString("MMMM dd, yyyy")</span><br />
+                        <span>@ev.Location</span><br />
+                        <span class="text-muted">Registered as: @reg.Name (@reg.Email)</span>
+                    </div>
+
+                    <button class="btn btn-danger" @onclick="() => Unregister(ev.Id)">
+                        Unregister
+                    </button>
+                </li>
+            }
+        }
+    </ul>
+}
+
+@code {
+    private IEnumerable<Registration> registrations = Enumerable.Empty<Registration>();
+    private string? userEmail;
+
+    protected override void OnInitialized()
+    {
+        userEmail = RegistrationService.LastRegisteredEmail;
+
+        if (userEmail is not null)
+        {
+            registrations = RegistrationService
+                .GetAllRegistrations()
+                .Where(r => r.Email == userEmail);
+        }
+    }
+
+    void Unregister(int eventId)
+    {
+        if (userEmail is not null)
+        {
+            RegistrationService.Unregister(eventId, userEmail);
+
+            // Refresh the list
+            registrations = RegistrationService
+                .GetAllRegistrations()
+                .Where(r => r.Email == userEmail);
+        }
+    }
+}

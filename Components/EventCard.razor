@@ -1,0 +1,21 @@
+@using EventEase.Models
+@inject NavigationManager Nav
+@inject Services.AttendanceService AttendanceService
+
+<p><strong>Attendance:</strong> @AttendanceService.GetAttendanceCount(Event.Id)</p>
+
+
+<div class="event-card" @onclick="() => NavigateToDetails(Event.Id)">
+    <h3>@Event.Name</h3>
+    <p><strong>Date:</strong> @Event.Date.ToString("MMMM dd, yyyy")</p>
+    <p><strong>Location:</strong> @Event.Location</p>
+</div>
+
+@code {
+    [Parameter] public Event Event { get; set; } = default!;
+
+    void NavigateToDetails(int id)
+    {
+        Nav.NavigateTo($"/events/{id}");
+    }
+}
